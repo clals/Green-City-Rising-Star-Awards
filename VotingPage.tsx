@@ -5,10 +5,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useVoting } from '../context/VotingContext';
+import { useVoting } from './VotingContext';
 import { Award, CheckCircle2, Circle, AlertTriangle, Key, ChevronRight, Check, ShieldCheck, ArrowLeft, Send } from 'lucide-react';
-import ConfettiEffect from '../components/ConfettiEffect';
-import SafeImage from '../components/SafeImage';
+import ConfettiEffect from './ConfettiEffect';
+import SafeImage from './SafeImage';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function VotingPage() {

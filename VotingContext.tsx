@@ -4,8 +4,8 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { Category, Contestant, VotingCode, VotingSettings, Vote } from '../types';
-import { dbService, isSupabaseConfigured } from '../services/db';
+import { Category, Contestant, VotingCode, VotingSettings, Vote } from './types';
+import { dbService, isSupabaseConfigured } from './db';
 
 interface VotingContextType {
   categories: Category[];

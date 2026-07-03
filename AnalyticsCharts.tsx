@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Trophy, TrendingUp, Users, Award, Search, Filter } from 'lucide-react';
-import { Category, Contestant, Vote } from '../types';
+import { Category, Contestant, Vote } from './types';
 import { motion } from 'motion/react';
 import SafeImage from './SafeImage';
 

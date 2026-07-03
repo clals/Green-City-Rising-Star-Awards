@@ -6,8 +6,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trophy, ArrowRight, ShieldCheck, KeyRound, Award, Ticket, HelpCircle, Crown } from 'lucide-react';
-import { useVoting } from '../context/VotingContext';
-import CountdownTimer from '../components/CountdownTimer';
+import { useVoting } from './VotingContext';
+import CountdownTimer from './CountdownTimer';
 
 import { motion } from 'motion/react';
 
