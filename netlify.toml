@@ -1,0 +1,18 @@
+# ==========================================
+# NETLIFY HOUSING & DEPLOYMENT BLUEPRINT
+# ==========================================
+
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Single-Page Application redirect fallback rule
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false

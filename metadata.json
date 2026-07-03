@@ -1,0 +1,8 @@
+{
+  "name": "Green City Rising Star Awards",
+  "description": "A modern, secure, and responsive temporary online voting platform for award ceremonies featuring anonymous voting, duplicate prevention with one-time codes, and a rich admin analytics dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
