@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Trophy, ShieldCheck, LogOut, Vote, Award, Menu, X } from 'lucide-react';
-import { useVoting } from '../context/VotingContext';
+import { useVoting } from './VotingContext';
 
 export default function Navbar() {
   const { isDbConfigured } = useVoting();

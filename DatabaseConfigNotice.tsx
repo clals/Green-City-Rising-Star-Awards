@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { Database, HelpCircle, ChevronDown, ChevronUp, Copy, Check, Info, Server, Award } from 'lucide-react';
-import { useVoting } from '../context/VotingContext';
+import { useVoting } from './VotingContext';
 
 export default function DatabaseConfigNotice() {
   const { isDbConfigured } = useVoting();

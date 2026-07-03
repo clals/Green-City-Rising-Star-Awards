@@ -5,11 +5,11 @@
 
 import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import { VotingProvider } from './context/VotingContext';
-import Navbar from './components/Navbar';
-import LandingPage from './pages/LandingPage';
-import VotingPage from './pages/VotingPage';
-import AdminDashboard from './pages/AdminDashboard';
+import { VotingProvider } from './VotingContext';
+import Navbar from './Navbar';
+import LandingPage from './LandingPage';
+import VotingPage from './VotingPage';
+import AdminDashboard from './AdminDashboard';
 
 export default function App() {
   return (

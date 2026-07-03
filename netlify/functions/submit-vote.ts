@@ -3,17 +3,28 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
 
-// Setup DB clients securely inside functions via server env variables
+type NetlifyEvent = {
+  httpMethod: string;
+  body: string | null;
+};
+
+type NetlifyResponse = {
+  statusCode: number;
+  headers: Record<string, string>;
+  body: string;
+};
+
+type Handler = (event: NetlifyEvent) => Promise<NetlifyResponse>;
+
+// Setup DB client securely inside functions via server env variables.
 const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export const handler: Handler = async (event, context) => {
-  // CORS Headers
+export const handler: Handler = async (event) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
@@ -44,7 +55,6 @@ export const handler: Handler = async (event, context) => {
       };
     }
 
-    // 1. Fetch system voting settings to verify period limits
     const { data: settings, error: settError } = await supabase
       .from('settings')
       .select('*')
@@ -79,7 +89,6 @@ export const handler: Handler = async (event, context) => {
       };
     }
 
-    // 2. Validate voting code
     const { data: codeRecord, error: codeError } = await supabase
       .from('voting_codes')
       .select('*')
@@ -102,7 +111,6 @@ export const handler: Handler = async (event, context) => {
       };
     }
 
-    // 3. Cast anonymous votes
     const timestamp = new Date().toISOString();
     const voteRows = Object.entries(selections).map(([category, contestantId]) => ({
       category,
@@ -122,7 +130,6 @@ export const handler: Handler = async (event, context) => {
       };
     }
 
-    // 4. Burn code (Mark code as used)
     const { error: updateError } = await supabase
       .from('voting_codes')
       .update({ used: true, used_at: timestamp })
@@ -141,12 +148,13 @@ export const handler: Handler = async (event, context) => {
       headers,
       body: JSON.stringify({ success: true, message: 'Your votes were recorded anonymously.' }),
     };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Serverless execution failure.';
 
-  } catch (error: any) {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: error.message || 'Serverless execution failure.' }),
+      body: JSON.stringify({ error: message }),
     };
   }
 };
