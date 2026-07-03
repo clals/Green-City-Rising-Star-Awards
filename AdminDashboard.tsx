@@ -4,17 +4,17 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useVoting } from '../context/VotingContext';
+import { useVoting } from './VotingContext';
 import { 
   ShieldCheck, Lock, Eye, EyeOff, Users, Award, Trophy, KeyRound, Settings, 
   Plus, Trash2, Edit3, Download, RefreshCw, FileSpreadsheet, FileText, Check, 
   AlertCircle, ChevronRight, Search, Filter, Calendar, X 
 } from 'lucide-react';
-import AnalyticsCharts from '../components/AnalyticsCharts';
-import SafeImage from '../components/SafeImage';
+import AnalyticsCharts from './AnalyticsCharts';
+import SafeImage from './SafeImage';
 import { motion, AnimatePresence } from 'motion/react';
-import { Category, Contestant } from '../types';
-import { dbService } from '../services/db';
+import { Category, Contestant } from './types';
+import { dbService } from './db';
 
 export default function AdminDashboard() {
   const {

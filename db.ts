@@ -4,7 +4,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { Category, Contestant, VotingCode, Vote, VotingSettings, VoteCountResult } from '../types';
+import { Category, Contestant, VotingCode, Vote, VotingSettings, VoteCountResult } from './types';
 
 // Read credentials
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
