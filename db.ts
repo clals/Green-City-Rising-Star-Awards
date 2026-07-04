@@ -138,7 +138,7 @@ const DEFAULT_CONTESTANTS: Contestant[] = [
     name: 'Mc Rozalia Events',
     category: 'MC',
     description: 'Elegant and witty stage general known for keeping audiences thoroughly engaged, high energetic tempos, and stellar coordination.',
-    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/MC%20ROZALIA%20EVENT'S%20.jpg'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/MC%20ROZALIA%20EVENT.jpg'
   },
   // Dj
   {
