@@ -244,6 +244,49 @@ const setLocalData = <T>(key: string, value: T): void => {
   }
 };
 
+// Helper: resize image client-side using canvas and return a Blob
+async function resizeImageFile(file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.8): Promise<Blob> {
+  return await new Promise<Blob>((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      let { width, height } = img;
+      let targetWidth = width;
+      let targetHeight = height;
+
+      // calculate new size while preserving aspect ratio
+      if (width > maxWidth || height > maxHeight) {
+        const widthRatio = maxWidth / width;
+        const heightRatio = maxHeight / height;
+        const ratio = Math.min(widthRatio, heightRatio);
+        targetWidth = Math.round(width * ratio);
+        targetHeight = Math.round(height * ratio);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        reject(new Error('Canvas not supported'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+      canvas.toBlob((blob) => {
+        URL.revokeObjectURL(url);
+        if (!blob) reject(new Error('Failed to create blob from canvas'));
+        else resolve(blob as Blob);
+      }, 'image/jpeg', quality);
+    };
+    img.onerror = (e) => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to load image for resizing'));
+    };
+    img.src = url;
+  });
+}
+
 // Primary DB Service Export Object
 export const dbService = {
   // ==========================================
@@ -448,6 +491,61 @@ export const dbService = {
     const updated = [...codes, ...generated];
     setLocalData(KEYS.CODES, updated);
     return generated;
+  },
+
+  // ==========================================
+  // Image Upload (Supabase Storage with local fallback)
+  // ==========================================
+  async uploadImage(file: File, options?: { maxWidth?: number; maxHeight?: number; quality?: number }): Promise<string> {
+    if (!file) throw new Error('No file provided');
+
+    const maxW = options?.maxWidth ?? 1200;
+    const maxH = options?.maxHeight ?? 1200;
+    const quality = options?.quality ?? 0.8;
+
+    // Normalize filename
+    const fileExt = (file.name.split('.').pop() || 'jpg').replace(/[^a-z0-9]/gi, '').toLowerCase();
+    const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+    const folderPath = 'contestants';
+    const storagePath = `${folderPath}/${safeName}`;
+
+    // Resize image to reduce upload size
+    let uploadBlob: Blob;
+    try {
+      uploadBlob = await resizeImageFile(file, maxW, maxH, quality);
+    } catch (err) {
+      console.warn('Image resize failed, using original file blob', err);
+      uploadBlob = file;
+    }
+
+    if (isSupabaseConfigured && supabaseClient) {
+      try {
+        const bucket = 'images';
+        // Supabase Storage upload expects a File/Blob
+        const { error: uploadError } = await supabaseClient.storage
+          .from(bucket)
+          .upload(storagePath, uploadBlob as any, { contentType: 'image/jpeg', upsert: false });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData, error: urlErr } = await supabaseClient.storage
+          .from(bucket)
+          .getPublicUrl(storagePath);
+
+        if (urlErr) throw urlErr;
+        return urlData.publicUrl;
+      } catch (err) {
+        console.warn('Supabase upload failed, falling back to data URL:', err);
+      }
+    }
+
+    // Fallback: convert to data URL
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.onload = () => resolve(String(reader.result));
+      reader.readAsDataURL(uploadBlob as Blob);
+    });
   },
 
   async getVotingCodes(): Promise<VotingCode[]> {
