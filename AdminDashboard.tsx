@@ -5,16 +5,16 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useVoting } from './VotingContext';
+import { dbService } from './db';
 import { 
   ShieldCheck, Lock, Eye, EyeOff, Users, Award, Trophy, KeyRound, Settings, 
   Plus, Trash2, Edit3, Download, RefreshCw, FileSpreadsheet, FileText, Check, 
-  AlertCircle, ChevronRight, Search, Filter, Calendar, X, Upload, Loader
+  AlertCircle, ChevronRight, Search, Filter, Calendar, X, Upload, Loader, AlertTriangle
 } from 'lucide-react';
 import AnalyticsCharts from './AnalyticsCharts';
 import SafeImage from './SafeImage';
 import { motion, AnimatePresence } from 'motion/react';
 import { Category, Contestant } from './types';
-import { dbService } from './db';
 
 export default function AdminDashboard() {
   const {
@@ -109,6 +109,16 @@ export default function AdminDashboard() {
       setSetCloseDate(toLocalDateVal(settings.voting_close));
     }
   }, [settings]);
+
+  // Calculate contestant statistics for deletions
+  const getContestantStats = (categoryName: string) => {
+    const categoryContestants = contestants.filter(c => c.category === categoryName);
+    const categoryVotes = votes.filter(v => v.category === categoryName).length;
+    return {
+      nomineeCount: categoryContestants.length,
+      voteCount: categoryVotes,
+    };
+  };
 
   // Sync state for editing contestants
   const openCandidateModal = (cand: Contestant | null = null) => {
@@ -565,26 +575,40 @@ export default function AdminDashboard() {
                 <h3 className="text-base font-bold text-white mb-4 uppercase font-serif tracking-wider">Official Categories Ledger</h3>
                 
                 <div className="space-y-3">
-                  {categories.map(cat => (
-                    <div key={cat.id} className="flex justify-between items-center p-3.5 rounded-xl bg-white/[0.02] border border-white/10">
-                      <div>
-                        <span className="block font-bold text-white text-sm font-serif">{cat.name}</span>
-                        <span className="block text-xs text-white/55 mt-1 font-light">{cat.description || 'No criteria specified.'}</span>
-                      </div>
+                  {categories.map(cat => {
+                    const stats = getContestantStats(cat.name);
+                    return (
+                      <div key={cat.id} className="flex justify-between items-start p-3.5 rounded-xl bg-white/[0.02] border border-white/10">
+                        <div className="flex-1">
+                          <span className="block font-bold text-white text-sm font-serif">{cat.name}</span>
+                          <span className="block text-xs text-white/55 mt-1 font-light">{cat.description || 'No criteria specified.'}</span>
+                          {/* DELETION WARNING: Show stats before deletion */}
+                          <div className="mt-3 flex gap-4 text-[10px] font-mono text-white/40">
+                            <span>📋 {stats.nomineeCount} nominee{stats.nomineeCount !== 1 ? 's' : ''}</span>
+                            <span>🗳️ {stats.voteCount} vote{stats.voteCount !== 1 ? 's' : ''}</span>
+                          </div>
+                        </div>
 
-                      <button
-                        onClick={async () => {
-                          if (confirm(`Are you sure you want to delete category "${cat.name}"? This deletes nominees too.`)) {
-                            await deleteCategory(cat.id);
-                          }
-                        }}
-                        className="text-white/40 hover:text-rose-400 p-2 hover:bg-rose-500/10 rounded-full transition-colors cursor-pointer"
-                        title="Delete Category"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
+                        <button
+                          onClick={async () => {
+                            // ENHANCED WARNING: Show nominees and votes before deletion
+                            const stats = getContestantStats(cat.name);
+                            const warning = stats.voteCount > 0 
+                              ? `⚠️ WARNING: This will delete ${stats.nomineeCount} nominee(s) and ${stats.voteCount} associated vote(s). This action cannot be undone.`
+                              : `Are you sure you want to delete category "${cat.name}"? This will delete ${stats.nomineeCount} nominee(s).`;
+                            
+                            if (confirm(warning)) {
+                              await deleteCategory(cat.id);
+                            }
+                          }}
+                          className="text-white/40 hover:text-rose-400 p-2 hover:bg-rose-500/10 rounded-full transition-colors cursor-pointer flex-shrink-0 ml-3"
+                          title="Delete Category"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
