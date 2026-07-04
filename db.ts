@@ -42,28 +42,28 @@ const DEFAULT_CONTESTANTS: Contestant[] = [
     name: 'Alo Star',
     category: 'Bongofleva',
     description: 'Energetic Bongofleva vocal artist famous for melodic hooks, rhythmic Swahili storytelling, and record-breaking club anthems.',
-    photo_url: 'https://drive.google.com/file/d/19ZgTEif-UvYkixbHqLrUPU8j-CG7_ZSo/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/ALOSTAR%20-SWALA%20(Music).PNG'
   },
   {
     id: 'bongo-2',
     name: 'Malon Boy',
     category: 'Bongofleva',
     description: 'Rousing lyricist and singer blending traditional East African sounds with contemporary Afrobeat rhythms.',
-    photo_url: 'https://drive.google.com/file/d/1r5V5YTpInQVNn1kyD6KW0Lt9tzSOdG91/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/MALON%20BOY%20(MUSIC).JPG'
   },
   {
     id: 'bongo-3',
     name: 'Remedy Africa',
     category: 'Bongofleva',
     description: 'Pioneering producer-singer delivering soulful harmonies, acoustic depth, and inspiring pan-African themes.',
-    photo_url: 'https://drive.google.com/file/d/1GrsjqtcrYZaqPQv1O4NM7-eVek5tEEja/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/REMEDYAFRICAN.jpg'
   },
   {
     id: 'bongo-4',
     name: 'Romeo Samdezy',
     category: 'Bongofleva',
     description: 'Romantic ballad vocalist capturing hearts with powerful ranges, intimate acoustic singles, and majestic live shows.',
-    photo_url: 'https://drive.google.com/file/d/1ukbidhgUN578LfM95uiNiXmgz67cGJji/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/Romeo%20samdezy%20(MUSIC).JPG'
   },
   // Singeli
   {
@@ -71,14 +71,14 @@ const DEFAULT_CONTESTANTS: Contestant[] = [
     name: 'Arrow Music',
     category: 'Singeli',
     description: 'High-bpm Singeli pioneer pushing rapid lyricism and hyper-speed beats to the mainstages of East African festivals.',
-    photo_url: 'https://drive.google.com/file/d/1ooHBJU1A2aGzU2TbWYRyz3_kZoGBZT2_/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/ARROW%20MUSIC%20(Singeri).png'
   },
   {
     id: 'singeli-2',
     name: 'Side Sela',
     category: 'Singeli',
     description: 'Known for witty socio-conscious rhymes, fast syncopations, and magnetic stage presence representing street culture.',
-    photo_url: 'https://drive.google.com/file/d/1qclAnvI-U4DBCvYjDQWRtExLJc9bE1pT/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/SIDE%20SELA%20(Singeri).png'
   },
   // Dancers (Group)
   {
@@ -86,14 +86,14 @@ const DEFAULT_CONTESTANTS: Contestant[] = [
     name: 'Eyes Power Dancer',
     category: 'Dancers (Group)',
     description: 'A highly coordinated crew delivering breathtaking synchronized street dances, acrobatic flips, and intense dramatic routines.',
-    photo_url: 'https://drive.google.com/file/d/1EZOJDZOv593TyPr-_dTo7F5uy9lQ765P/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/972A0677.jpg'
   },
   {
     id: 'dc-group-2',
     name: 'The African fighter dancers',
     category: 'Dancers (Group)',
     description: 'Dynamic traditional-meets-modern dance theatre depicting historical tales through explosive physical choreography.',
-    photo_url: 'https://drive.google.com/file/d/15hkTwms6mOLtQuASTPp_qM03Wb_fV6Jg/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/THE%20AFRICAN%20FIGHTER%20DANCERS%20.jpg'
   },
   // Dancers (Personal)
   {
@@ -101,14 +101,14 @@ const DEFAULT_CONTESTANTS: Contestant[] = [
     name: 'Mtoto wa mkoani',
     category: 'Dancers (Personal)',
     description: 'Vibrant solo performer beloved for expressive face-work, flexible movements, and popular viral social media challenges.',
-    photo_url: 'https://drive.google.com/file/d/1GUk593KZUyacI_Q9W8BNvdI4B6k_LXr6/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/MTOTO%20WA%20MKOANI%20(DANCE).jpg'
   },
   {
     id: 'dc-pers-2',
     name: 'Khan Minji Dancer',
     category: 'Dancers (Personal)',
     description: 'Graceful contemporary-fusion dancer blending modern ballet, Afro-dance elements, and theatrical street styles.',
-    photo_url: 'https://drive.google.com/file/d/10i_-P9X89aqvd_9KNbyzApAhwyhpFyZx/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/IMG-20260703-WA0013.jpg'
   },
   // Models
   {
@@ -116,14 +116,14 @@ const DEFAULT_CONTESTANTS: Contestant[] = [
     name: 'Jay savage',
     category: 'Models',
     description: 'Avant-garde runway model and trendsetter pushing high-fashion boundaries in editorial campaigns worldwide.',
-    photo_url: 'https://drive.google.com/file/d/1KDPo_nioqMLSLqVuYyP72j6U2ui8MkuS/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/SAVAGE%20MODEL.JPG'
   },
   {
     id: 'model-2',
     name: 'Amelvano model',
     category: 'Models',
     description: 'Elite editorial model celebrated for architectural poses, haute couture runway walks, and magnetic presence.',
-    photo_url: 'https://drive.google.com/file/d/1mrINfNLinAyHpCktJhphEGmXuabB85V9/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/Amelvano%20model.jpg'
   },
   // MC
   {
@@ -131,14 +131,14 @@ const DEFAULT_CONTESTANTS: Contestant[] = [
     name: 'Mc Abby Events',
     category: 'MC',
     description: 'Dynamic and charismatic Master of Ceremonies, hosting high-profile corporate galas, premium weddings, and live events.',
-    photo_url: 'https://drive.google.com/file/d/1uyJlZJWRiKzhbGkZOhmNR1HF7H43t-9P/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/Mc%20Abby%20Events.jpg'
   },
   {
     id: 'mc-2',
     name: 'Mc Rozalia Events',
     category: 'MC',
     description: 'Elegant and witty stage general known for keeping audiences thoroughly engaged, high energetic tempos, and stellar coordination.',
-    photo_url: 'https://drive.google.com/file/d/1rTrnmDdR9lVfir1rx32SkNvcKeyw47am/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/MC%20ROZALIA%20EVENT'S%20.jpg'
   },
   // Dj
   {
@@ -146,14 +146,14 @@ const DEFAULT_CONTESTANTS: Contestant[] = [
     name: 'Dj Focus',
     category: 'Dj',
     description: 'Turntablist wizard and crowd favorite, renowned for seamless cross-genre mixing, custom vocal drops, and ultimate club energy.',
-    photo_url: 'https://drive.google.com/file/d/1aRNJ7smcDRG0pnKEVHjTh1pK6Ipf3Oz6/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/DJ%20FOCUS%20MISONDO.jpg'
   },
   {
     id: 'dj-2',
     name: 'Dj Msigwa',
     category: 'Dj',
     description: 'Afro-house specialist and audio selector crafting atmospheric deep tribal sets and radio-wave host mixes.',
-    photo_url: 'https://drive.google.com/file/d/1i1MDqhFnYuSX2LAFcQj_Hn6gMTAEe3ZH/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/IMG-20260703-WA0015.jpg'
   },
   // Ubunifu
   {
@@ -161,14 +161,14 @@ const DEFAULT_CONTESTANTS: Contestant[] = [
     name: 'Patrick Colors',
     category: 'Ubunifu',
     description: 'Bold, modern clothing designer celebrating African fabrics through contemporary high-street silhouettes and vibrant custom prints.',
-    photo_url: 'https://drive.google.com/file/d/1pp5JxBR07YJfZK34EpizYRHHx-5jW-am/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/IMG-20260204-WA0016(1).jpg'
   },
   {
     id: 'ubu-2',
     name: 'Martha Stylish',
     category: 'Ubunifu',
     description: 'Bridal and luxury evening-wear designer recognized for intricate hand-stitched detailing, silk drapes, and high glamour.',
-    photo_url: 'https://drive.google.com/file/d/194slXFCOH41LDt6r1h6XuYFlUqsQIxnQ/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/Martha%20Stylish%20.jpg'
   },
   // Comedian
   {
@@ -176,14 +176,14 @@ const DEFAULT_CONTESTANTS: Contestant[] = [
     name: 'Nick tr Jr',
     category: 'Comedian',
     description: 'Witty stand-up comic and physical impressionist, capturing everyday humor and turning it into side-splitting viral sketches.',
-    photo_url: 'https://drive.google.com/file/d/1p3iGF_4PY07TymQTatGRMi89I1aW31ph/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/IMG-20260703-WA0014.jpg'
   },
   {
     id: 'com-2',
     name: 'Konde Boy wa Mbeya',
     category: 'Comedian',
     description: 'Renowned for hilarious storytelling, local dialect comedy, and high-energy satirical parodies.',
-    photo_url: 'https://drive.google.com/file/d/1tEBwtji52bl4x_9TwYf2GyDQgzRnyJnF/view?usp=drive_link'
+    photo_url: 'https://tvsswylaikjinmaqhrql.supabase.co/storage/v1/object/public/images/Screenshot_20260703_210551_Instagram%20Lite.jpg'
   }
 ];
 
