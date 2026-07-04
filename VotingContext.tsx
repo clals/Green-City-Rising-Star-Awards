@@ -157,6 +157,11 @@ export function VotingProvider({ children }: { children: ReactNode }) {
   };
 
   const submitVotes = async (selections: Record<string, string>) => {
+    // SECURITY FIX: Check if voter has already voted in this session
+    if (localStorage.getItem('has_voted_green_city') === 'true') {
+      return { success: false, error: 'You have already voted in this session. Only one vote per code is allowed.' };
+    }
+
     if (votingState !== 'open') {
       return { success: false, error: 'Voting is not currently open.' };
     }
@@ -171,7 +176,9 @@ export function VotingProvider({ children }: { children: ReactNode }) {
       // 1. Submit Votes (Anonymous)
       await dbService.submitVotes(votesToSubmit);
 
-      // 2. Record local vote session
+      // 2. Record local vote session - PREVENT DUPLICATE VOTES
+      localStorage.setItem('has_voted_green_city', 'true');
+      // Also set the legacy key for backwards compatibility
       localStorage.setItem('has_voted_south_zoo', 'true');
 
       // 3. Refresh context data

@@ -6,21 +6,40 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVoting } from './VotingContext';
-import { Award, CheckCircle2, Circle, AlertTriangle, Key, ChevronRight, Check, ShieldCheck, ArrowLeft, Send } from 'lucide-react';
+import { Award, CheckCircle2, Circle, AlertTriangle, Key, ChevronRight, Check, ShieldCheck, ArrowLeft, Send, Clock } from 'lucide-react';
 import ConfettiEffect from './ConfettiEffect';
 import SafeImage from './SafeImage';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function VotingPage() {
-  const { categories, contestants, submitVotes, votingState } = useVoting();
+  const { categories, contestants, submitVotes, votingState, timeRemaining } = useVoting();
   const navigate = useNavigate();
 
   // Voter choices state: { [categoryName]: contestantId }
-  const [selections, setSelections] = useState<Record<string, string>>({});
+  const [selections, setSelections] = useState<Record<string, string>>(() => {
+    // AUTO-SAVE: Load draft from sessionStorage on mount
+    const saved = sessionStorage.getItem('ballot_draft');
+    return saved ? JSON.parse(saved) : {};
+  });
   const [activeCategoryIdx, setActiveCategoryIdx] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showTimeWarning, setShowTimeWarning] = useState(false);
+
+  // AUTO-SAVE: Persist selections to sessionStorage whenever they change
+  useEffect(() => {
+    sessionStorage.setItem('ballot_draft', JSON.stringify(selections));
+  }, [selections]);
+
+  // TIME WARNING: Show warning when < 5 minutes remaining
+  useEffect(() => {
+    if (timeRemaining && timeRemaining.totalMs < 300000 && votingState === 'open') {
+      setShowTimeWarning(true);
+    } else {
+      setShowTimeWarning(false);
+    }
+  }, [timeRemaining, votingState]);
 
   // Redirect if voting is not open (upcoming or closed)
   useEffect(() => {
@@ -79,6 +98,8 @@ export default function VotingPage() {
     setIsSubmitting(false);
 
     if (res.success) {
+      // CLEAR DRAFT: Remove saved ballot on successful submission
+      sessionStorage.removeItem('ballot_draft');
       setSubmitSuccess(true);
     } else {
       setErrorMessage(res.error || 'Failed to submit. Please try again.');
@@ -150,6 +171,26 @@ export default function VotingPage() {
 
       <div className="max-w-7xl mx-auto">
         
+        {/* TIME WARNING BANNER - Show when < 5 minutes remaining */}
+        <AnimatePresence>
+          {showTimeWarning && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl flex items-start space-x-3"
+            >
+              <Clock className="h-5 w-5 flex-shrink-0 mt-0.5 animate-pulse" />
+              <div>
+                <p className="text-sm font-semibold">⏰ Voting Closing Soon!</p>
+                <p className="text-xs text-amber-300/80 mt-1">
+                  You have less than 5 minutes to submit your ballot. Your draft has been saved automatically.
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Stepper Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
@@ -294,7 +335,7 @@ export default function VotingPage() {
               <button
                 onClick={handlePrevCategory}
                 disabled={activeCategoryIdx === 0}
-                className="flex items-center space-x-2 px-5 py-2.5 rounded-full border border-white/10 bg-white/[0.02] hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none text-xs uppercase tracking-wider font-semibold transition-all cursor-pointer"
+                className="flex items-center space-x-2 px-5 py-2.5 rounded-full border border-white/10 bg-white/[0.02] hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none text-xs uppercase tracking-wider cursor-pointer transition-all"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 <span>Previous</span>
@@ -303,7 +344,7 @@ export default function VotingPage() {
               <button
                 onClick={handleNextCategory}
                 disabled={activeCategoryIdx === categories.length - 1}
-                className="flex items-center space-x-2 px-5 py-2.5 rounded-full border border-white/10 bg-white/[0.02] hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none text-xs uppercase tracking-wider font-semibold transition-all cursor-pointer"
+                className="flex items-center space-x-2 px-5 py-2.5 rounded-full border border-white/10 bg-white/[0.02] hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none text-xs uppercase tracking-wider cursor-pointer transition-all"
               >
                 <span>Next</span>
                 <ChevronRight className="h-3.5 w-3.5" />
@@ -360,7 +401,7 @@ export default function VotingPage() {
               <button
                 onClick={handleSubmitBallot}
                 disabled={!allCategoriesSelected || isSubmitting}
-                className="w-full flex items-center justify-center space-x-2 bg-gold-500 hover:bg-gold-600 disabled:bg-white/5 disabled:border-white/10 disabled:text-white/20 disabled:cursor-not-allowed text-black font-semibold py-3 px-4 rounded-full shadow-lg hover:scale-[1.01] transition-all cursor-pointer text-xs uppercase tracking-wider"
+                className="w-full flex items-center justify-center space-x-2 bg-gold-500 hover:bg-gold-600 disabled:bg-white/5 disabled:border-white/10 disabled:text-white/20 disabled:cursor-not-allowed text-black font-semibold py-3 px-6 rounded-full shadow-lg shadow-gold-500/20 transition-all border border-transparent disabled:border-white/10 text-xs uppercase tracking-wider cursor-pointer"
               >
                 <Send className="h-3.5 w-3.5" />
                 <span>{isSubmitting ? 'Casting Ballot...' : 'Submit Ballot'}</span>
