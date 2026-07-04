@@ -244,47 +244,67 @@ const setLocalData = <T>(key: string, value: T): void => {
   }
 };
 
-// Helper: resize image client-side using canvas and return a Blob
-async function resizeImageFile(file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.8): Promise<Blob> {
-  return await new Promise<Blob>((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      let { width, height } = img;
-      let targetWidth = width;
-      let targetHeight = height;
+/**
+ * Resizes an image file while preserving aspect ratio
+ * Uses try-finally to ensure ObjectURL cleanup
+ * Non-blocking via canvas operations
+ */
+async function resizeImageFile(
+  file: File,
+  maxWidth = 1200,
+  maxHeight = 1200,
+  quality = 0.8
+): Promise<Blob> {
+  const url = URL.createObjectURL(file);
+  try {
+    return await new Promise<Blob>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          let { width, height } = img;
+          let targetWidth = width;
+          let targetHeight = height;
 
-      // calculate new size while preserving aspect ratio
-      if (width > maxWidth || height > maxHeight) {
-        const widthRatio = maxWidth / width;
-        const heightRatio = maxHeight / height;
-        const ratio = Math.min(widthRatio, heightRatio);
-        targetWidth = Math.round(width * ratio);
-        targetHeight = Math.round(height * ratio);
-      }
+          // calculate new size while preserving aspect ratio
+          if (width > maxWidth || height > maxHeight) {
+            const widthRatio = maxWidth / width;
+            const heightRatio = maxHeight / height;
+            const ratio = Math.min(widthRatio, heightRatio);
+            targetWidth = Math.round(width * ratio);
+            targetHeight = Math.round(height * ratio);
+          }
 
-      const canvas = document.createElement('canvas');
-      canvas.width = targetWidth;
-      canvas.height = targetHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        URL.revokeObjectURL(url);
-        reject(new Error('Canvas not supported'));
-        return;
-      }
-      ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-      canvas.toBlob((blob) => {
-        URL.revokeObjectURL(url);
-        if (!blob) reject(new Error('Failed to create blob from canvas'));
-        else resolve(blob as Blob);
-      }, 'image/jpeg', quality);
-    };
-    img.onerror = (e) => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load image for resizing'));
-    };
-    img.src = url;
-  });
+          const canvas = document.createElement('canvas');
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Canvas not supported'));
+            return;
+          }
+          ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+          canvas.toBlob((blob) => {
+            if (!blob) reject(new Error('Failed to create blob from canvas'));
+            else resolve(blob as Blob);
+          }, 'image/jpeg', quality);
+        } catch (err) {
+          reject(err);
+        }
+      };
+      img.onerror = () => reject(new Error('Failed to load image for resizing'));
+      img.src = url;
+    });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+interface UploadOptions {
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: number;
+  maxFileSizeMb?: number;
+  onProgress?: (percent: number) => void;
 }
 
 // Primary DB Service Export Object
@@ -494,10 +514,32 @@ export const dbService = {
   },
 
   // ==========================================
-  // Image Upload (Supabase Storage with local fallback)
+  // Image Upload (Supabase Storage with validation)
   // ==========================================
-  async uploadImage(file: File, options?: { maxWidth?: number; maxHeight?: number; quality?: number }): Promise<string> {
+  /**
+   * Upload image with client-side validation and resizing
+   * - Validates file type and size before upload
+   * - Resizes image to reduce bandwidth
+   * - Provides progress callback for UI feedback
+   * - Ensures ObjectURL cleanup
+   * - Rejects oversized files to prevent OOM on data URL fallback
+   */
+  async uploadImage(file: File, options?: UploadOptions): Promise<string> {
     if (!file) throw new Error('No file provided');
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      throw new Error(`Invalid file type: ${file.type}. Only images are allowed.`);
+    }
+    
+    // Validate file size
+    const maxFileSizeMb = options?.maxFileSizeMb ?? 5;
+    const maxFileSizeBytes = maxFileSizeMb * 1024 * 1024;
+    if (file.size > maxFileSizeBytes) {
+      throw new Error(`File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Maximum is ${maxFileSizeMb}MB.`);
+    }
+
+    options?.onProgress?.(10);
 
     const maxW = options?.maxWidth ?? 1200;
     const maxH = options?.maxHeight ?? 1200;
@@ -513,9 +555,11 @@ export const dbService = {
     let uploadBlob: Blob;
     try {
       uploadBlob = await resizeImageFile(file, maxW, maxH, quality);
+      options?.onProgress?.(40);
     } catch (err) {
       console.warn('Image resize failed, using original file blob', err);
       uploadBlob = file;
+      options?.onProgress?.(40);
     }
 
     if (isSupabaseConfigured && supabaseClient) {
@@ -528,24 +572,24 @@ export const dbService = {
 
         if (uploadError) throw uploadError;
 
+        options?.onProgress?.(75);
+
         const { data: urlData, error: urlErr } = await supabaseClient.storage
           .from(bucket)
           .getPublicUrl(storagePath);
 
         if (urlErr) throw urlErr;
+        options?.onProgress?.(100);
         return urlData.publicUrl;
       } catch (err) {
-        console.warn('Supabase upload failed, falling back to data URL:', err);
+        console.warn('Supabase upload failed:', err);
+        // Don't fall back to data URL - reject instead to prevent OOM
+        throw new Error('Upload failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
       }
     }
 
-    // Fallback: convert to data URL
-    return await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.onload = () => resolve(String(reader.result));
-      reader.readAsDataURL(uploadBlob as Blob);
-    });
+    // No Supabase configured - cannot proceed without storage
+    throw new Error('Image storage not configured. Please configure Supabase environment variables.');
   },
 
   async getVotingCodes(): Promise<VotingCode[]> {

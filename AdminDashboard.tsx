@@ -8,7 +8,7 @@ import { useVoting } from './VotingContext';
 import { 
   ShieldCheck, Lock, Eye, EyeOff, Users, Award, Trophy, KeyRound, Settings, 
   Plus, Trash2, Edit3, Download, RefreshCw, FileSpreadsheet, FileText, Check, 
-  AlertCircle, ChevronRight, Search, Filter, Calendar, X 
+  AlertCircle, ChevronRight, Search, Filter, Calendar, X, Upload, Loader
 } from 'lucide-react';
 import AnalyticsCharts from './AnalyticsCharts';
 import SafeImage from './SafeImage';
@@ -49,6 +49,9 @@ export default function AdminDashboard() {
   const [candCategory, setCandCategory] = useState('');
   const [candDescription, setCandDescription] = useState('');
   const [candPhotoUrl, setCandPhotoUrl] = useState('');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // 3. Category Manager State
   const [newCatName, setNewCatName] = useState('');
@@ -122,6 +125,8 @@ export default function AdminDashboard() {
       setCandDescription('Nominee Profile');
       setCandPhotoUrl('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300');
     }
+    setUploadError(null);
+    setUploadProgress(0);
     setIsCandidateModalOpen(true);
   };
 
@@ -150,6 +155,35 @@ export default function AdminDashboard() {
       });
     }
     setIsCandidateModalOpen(false);
+  };
+
+  // Handle image file upload with validation and progress
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.currentTarget.files?.[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    setUploadError(null);
+    setUploadProgress(0);
+
+    try {
+      const uploadedUrl = await dbService.uploadImage(file, {
+        maxFileSizeMb: 5,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        quality: 0.8,
+        onProgress: (percent) => setUploadProgress(percent),
+      });
+      setCandPhotoUrl(uploadedUrl);
+      setUploadProgress(100);
+      setTimeout(() => setUploadProgress(0), 1000);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Upload failed';
+      setUploadError(errorMsg);
+      console.error('Image upload failed:', err);
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   // Add category
@@ -276,7 +310,7 @@ export default function AdminDashboard() {
                   value={passcode}
                   onChange={e => setPasscode(e.target.value)}
                   placeholder="Enter passcode..."
-                  className="w-full bg-black border border-white/10 hover:border-white/20 focus:border-gold-500/40 rounded-xl px-4 py-3 text-sm text-center text-white font-mono tracking-widest focus:outline-none focus:ring-1 focus:ring-gold-500/20 transition-all duration-200"
+                  className="w-full bg-black border border-white/10 hover:border-white/20 focus:border-gold-500/40 rounded-xl px-4 py-3 text-sm text-center text-white font-mono tracking-widest focus:outline-none transition-colors"
                 />
                 <button
                   type="button"
@@ -333,7 +367,7 @@ export default function AdminDashboard() {
             <button
               onClick={handleManualRefresh}
               disabled={isRefreshing}
-              className="flex items-center space-x-1.5 bg-white/[0.02] hover:bg-white/10 border border-white/10 px-4 py-2 rounded-full text-xs font-semibold text-white transition-all cursor-pointer"
+              className="flex items-center space-x-1.5 bg-white/[0.02] hover:bg-white/10 border border-white/10 px-4 py-2 rounded-full text-xs font-semibold text-white transition-all cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span>{isRefreshing ? 'Refreshing...' : 'Sync Data'}</span>
@@ -438,7 +472,7 @@ export default function AdminDashboard() {
                         name={cont.name}
                         className="w-full h-full object-cover"
                       />
-                      <span className="absolute top-3 left-3 bg-black/80 backdrop-blur-sm border border-white/10 rounded-full px-2.5 py-0.5 text-[9px] font-mono tracking-wider text-gold-500 uppercase font-bold">
+                      <span className="absolute top-3 left-3 bg-black/80 backdrop-blur-sm border border-white/10 rounded-full px-2.5 py-0.5 text-[9px] font-mono tracking-wider text-gold-500 uppercase">
                         {cont.category}
                       </span>
                     </div>
@@ -687,7 +721,7 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#0c0c0c] border border-white/10 max-w-md w-full rounded-3xl p-6 relative shadow-2xl"
+              className="bg-[#0c0c0c] border border-white/10 max-w-md w-full rounded-3xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto"
             >
               <button
                 onClick={() => setIsCandidateModalOpen(false)}
@@ -729,13 +763,56 @@ export default function AdminDashboard() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-mono tracking-wider text-white/40 uppercase mb-1">Photo URL Asset</label>
+                  <label className="block text-[10px] font-mono tracking-wider text-white/40 uppercase mb-1">Description</label>
+                  <textarea
+                    value={candDescription}
+                    onChange={e => setCandDescription(e.target.value)}
+                    placeholder="Brief bio or achievements"
+                    rows={2}
+                    className="w-full bg-black border border-white/10 focus:border-gold-500/40 rounded-lg px-3 py-2 text-xs text-white focus:outline-none resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono tracking-wider text-white/40 uppercase mb-1">Photo Upload</label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <label className="flex-1 flex items-center justify-center px-3 py-2 bg-black border border-white/10 hover:border-gold-500/40 rounded-lg cursor-pointer transition-colors">
+                        <Upload className="h-3.5 w-3.5 mr-1.5" />
+                        <span className="text-[10px] text-white font-mono uppercase tracking-wider">Choose File</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          disabled={isUploadingImage}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                    
+                    {isUploadingImage && (
+                      <div className="flex items-center space-x-2">
+                        <Loader className="h-3.5 w-3.5 animate-spin text-gold-500" />
+                        <span className="text-[10px] text-gold-400">Uploading... {uploadProgress}%</span>
+                      </div>
+                    )}
+                    
+                    {uploadError && (
+                      <div className="p-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] rounded-lg flex items-start space-x-1.5">
+                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+                        <span>{uploadError}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono tracking-wider text-white/40 uppercase mb-1">Photo URL (or use uploaded image above)</label>
                   <input
                     type="url"
-                    required
                     value={candPhotoUrl}
                     onChange={e => setCandPhotoUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/... or Google Drive Share Link"
+                    placeholder="https://images.unsplash.com/... "
                     className="w-full bg-black border border-white/10 focus:border-gold-500/40 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
                   />
                   {candPhotoUrl && (
@@ -759,14 +836,16 @@ export default function AdminDashboard() {
                 <div className="flex space-x-2 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 bg-gold-500 hover:bg-gold-600 text-black font-semibold py-2.5 rounded-full text-xs uppercase cursor-pointer"
+                    disabled={isUploadingImage}
+                    className="flex-1 bg-gold-500 hover:bg-gold-600 text-black font-semibold py-2.5 rounded-full text-xs uppercase cursor-pointer disabled:opacity-50 transition-all"
                   >
                     Save Changes
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsCandidateModalOpen(false)}
-                    className="flex-1 bg-white/[0.02] hover:bg-white/10 border border-white/10 text-white/50 py-2.5 rounded-full text-xs uppercase cursor-pointer"
+                    disabled={isUploadingImage}
+                    className="flex-1 bg-white/[0.02] hover:bg-white/10 border border-white/10 text-white/50 py-2.5 rounded-full text-xs uppercase cursor-pointer disabled:opacity-50 transition-all"
                   >
                     Cancel
                   </button>
