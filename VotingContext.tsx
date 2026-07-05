@@ -14,7 +14,6 @@ interface VotingContextType {
   settings: VotingSettings;
   isDbConfigured: boolean;
   isLoading: boolean;
-  activeCode: VotingCode | null;
   votingState: 'loading' | 'upcoming' | 'open' | 'closed';
   timeRemaining: {
     days: number;
@@ -25,8 +24,6 @@ interface VotingContextType {
   } | null;
   
   // Voter actions
-  enterVotingCode: (code: string) => Promise<{ success: boolean; error?: string }>;
-  logoutVoter: () => void;
   submitVotes: (selections: Record<string, string>) => Promise<{ success: boolean; error?: string }>;
   
   // Admin actions
@@ -48,22 +45,9 @@ export function VotingProvider({ children }: { children: ReactNode }) {
   const [contestants, setContestants] = useState<Contestant[]>([]);
   const [votingCodes, setVotingCodes] = useState<VotingCode[]>([]);
   const [settings, setSettings] = useState<VotingSettings>({ voting_open: '', voting_close: '' });
-  const [activeCode, setActiveCode] = useState<VotingCode | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [votingState, setVotingState] = useState<'loading' | 'upcoming' | 'open' | 'closed'>('loading');
   const [timeRemaining, setTimeRemaining] = useState<VotingContextType['timeRemaining']>(null);
-
-  // Load active session from sessionStorage if any, so refreshes don't wipe active code
-  useEffect(() => {
-    const savedCode = sessionStorage.getItem('voter_active_code');
-    if (savedCode) {
-      try {
-        setActiveCode(JSON.parse(savedCode));
-      } catch (e) {
-        sessionStorage.removeItem('voter_active_code');
-      }
-    }
-  }, []);
 
   // Fetch all database records
   const refreshData = useCallback(async () => {
@@ -133,39 +117,7 @@ export function VotingProvider({ children }: { children: ReactNode }) {
   // ==========================================
   // VOTER FLOWS
   // ==========================================
-  const enterVotingCode = async (codeStr: string) => {
-    try {
-      const validated = await dbService.validateCode(codeStr);
-      if (!validated) {
-        return { success: false, error: 'Invalid voting code. Please check for spelling mistakes.' };
-      }
-      if (validated.used) {
-        return { success: false, error: 'This voting code has already been used to cast votes.' };
-      }
-      setActiveCode(validated);
-      sessionStorage.setItem('voter_active_code', JSON.stringify(validated));
-      return { success: true };
-    } catch (err: any) {
-      console.error(err);
-      return { success: false, error: err.message || 'An error occurred during verification.' };
-    }
-  };
-
-  const logoutVoter = () => {
-    setActiveCode(null);
-    sessionStorage.removeItem('voter_active_code');
-  };
-
   const submitVotes = async (selections: Record<string, string>) => {
-    if (!activeCode) {
-      return { success: false, error: 'No active voting code. Please enter your code to continue.' };
-    }
-
-    // Client-side duplicate-vote guard (defense in depth)
-    if (localStorage.getItem('has_voted_green_city') === 'true') {
-      return { success: false, error: 'You have already voted in this session. Only one vote per code is allowed.' };
-    }
-
     if (votingState !== 'open') {
       return { success: false, error: 'Voting is not currently open.' };
     }
@@ -177,21 +129,13 @@ export function VotingProvider({ children }: { children: ReactNode }) {
         contestant_id: contestantId,
       }));
 
-      // 1. Submit Votes (Anonymous)
+      // Submit Votes (Anonymous)
       await dbService.submitVotes(votesToSubmit);
 
-      // 2. Mark the voting code as used so it cannot be reused on any device
-      await dbService.markCodeAsUsed(activeCode.id);
-
-      // 3. Record client-side flag as a secondary duplicate-vote guard
+      // Record client-side flag as a duplicate-vote guard
       localStorage.setItem('has_voted_green_city', 'true');
-      localStorage.setItem('has_voted_south_zoo', 'true');
 
-      // 4. Clear the voter session so the code cannot be reused from this browser
-      setActiveCode(null);
-      sessionStorage.removeItem('voter_active_code');
-
-      // 5. Refresh context data
+      // Refresh context data
       await refreshData();
       
       return { success: true };
@@ -279,9 +223,8 @@ export function VotingProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       await dbService.resetVoting();
-      // Clear client-side vote flags so users on the same browser can vote again
+      // Clear client-side vote flag so users on the same browser can vote again
       localStorage.removeItem('has_voted_green_city');
-      localStorage.removeItem('has_voted_south_zoo');
       await refreshData();
     } finally {
       setIsLoading(false);
@@ -296,12 +239,9 @@ export function VotingProvider({ children }: { children: ReactNode }) {
       settings,
       isDbConfigured: isSupabaseConfigured,
       isLoading,
-      activeCode,
       votingState,
       timeRemaining,
       
-      enterVotingCode,
-      logoutVoter,
       submitVotes,
       
       refreshData,

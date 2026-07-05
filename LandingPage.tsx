@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, ArrowRight, ShieldCheck, KeyRound, Award, Ticket, HelpCircle, Crown } from 'lucide-react';
+import { Trophy, ArrowRight, Award, Ticket, Crown } from 'lucide-react';
 import { useVoting } from './VotingContext';
 import CountdownTimer from './CountdownTimer';
 
@@ -14,29 +14,9 @@ import { motion } from 'motion/react';
 export default function LandingPage() {
   const { votingState, timeRemaining, settings } = useVoting();
   const [hasVoted] = useState(() => {
-    return localStorage.getItem('has_voted_south_zoo') === 'true' || localStorage.getItem('has_voted_green_city') === 'true';
+    return localStorage.getItem('has_voted_green_city') === 'true';
   });
   const navigate = useNavigate();
-  const codeInputRef = useRef<HTMLInputElement>(null);
-  const [codeInputFocus, setCodeInputFocus] = useState(false);
-
-  // KEYBOARD ACCESSIBILITY: Auto-focus code input on mount
-  React.useEffect(() => {
-    if (votingState === 'open') {
-      // Small delay to ensure DOM is ready
-      const timer = setTimeout(() => {
-        codeInputRef.current?.focus();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [votingState]);
-
-  const handleCodeInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // KEYBOARD ACCESSIBILITY: Submit on Enter key
-    if (e.key === 'Enter' && !hasVoted) {
-      navigate('/vote');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-x-hidden relative" id="landing-page-root">

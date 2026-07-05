@@ -45,13 +45,13 @@ export const handler: Handler = async (event) => {
   }
 
   try {
-    const { code, selections } = JSON.parse(event.body || '{}');
+    const { selections } = JSON.parse(event.body || '{}');
 
-    if (!code || !selections || Object.keys(selections).length === 0) {
+    if (!selections || Object.keys(selections).length === 0) {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ error: 'Missing code or ballot selections.' }),
+        body: JSON.stringify({ error: 'Missing ballot selections.' }),
       };
     }
 
@@ -89,28 +89,6 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    const { data: codeRecord, error: codeError } = await supabase
-      .from('voting_codes')
-      .select('*')
-      .eq('code', code.toUpperCase())
-      .maybeSingle();
-
-    if (codeError || !codeRecord) {
-      return {
-        statusCode: 401,
-        headers,
-        body: JSON.stringify({ error: 'Invalid voting code. Validation failed.' }),
-      };
-    }
-
-    if (codeRecord.used) {
-      return {
-        statusCode: 403,
-        headers,
-        body: JSON.stringify({ error: 'This unique voting code has already been used.' }),
-      };
-    }
-
     const timestamp = new Date().toISOString();
     const voteRows = Object.entries(selections).map(([category, contestantId]) => ({
       category,
@@ -127,19 +105,6 @@ export const handler: Handler = async (event) => {
         statusCode: 500,
         headers,
         body: JSON.stringify({ error: 'Database failed to register anonymous selections.' }),
-      };
-    }
-
-    const { error: updateError } = await supabase
-      .from('voting_codes')
-      .update({ used: true, used_at: timestamp })
-      .eq('id', codeRecord.id);
-
-    if (updateError) {
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'Ballot cast but failed to burn active voting ticket.' }),
       };
     }
 
