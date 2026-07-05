@@ -157,7 +157,11 @@ export function VotingProvider({ children }: { children: ReactNode }) {
   };
 
   const submitVotes = async (selections: Record<string, string>) => {
-    // SECURITY FIX: Check if voter has already voted in this session
+    if (!activeCode) {
+      return { success: false, error: 'No active voting code. Please enter your code to continue.' };
+    }
+
+    // Client-side duplicate-vote guard (defense in depth)
     if (localStorage.getItem('has_voted_green_city') === 'true') {
       return { success: false, error: 'You have already voted in this session. Only one vote per code is allowed.' };
     }
@@ -176,12 +180,18 @@ export function VotingProvider({ children }: { children: ReactNode }) {
       // 1. Submit Votes (Anonymous)
       await dbService.submitVotes(votesToSubmit);
 
-      // 2. Record local vote session - PREVENT DUPLICATE VOTES
+      // 2. Mark the voting code as used so it cannot be reused on any device
+      await dbService.markCodeAsUsed(activeCode.id);
+
+      // 3. Record client-side flag as a secondary duplicate-vote guard
       localStorage.setItem('has_voted_green_city', 'true');
-      // Also set the legacy key for backwards compatibility
       localStorage.setItem('has_voted_south_zoo', 'true');
 
-      // 3. Refresh context data
+      // 4. Clear the voter session so the code cannot be reused from this browser
+      setActiveCode(null);
+      sessionStorage.removeItem('voter_active_code');
+
+      // 5. Refresh context data
       await refreshData();
       
       return { success: true };
@@ -269,6 +279,9 @@ export function VotingProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       await dbService.resetVoting();
+      // Clear client-side vote flags so users on the same browser can vote again
+      localStorage.removeItem('has_voted_green_city');
+      localStorage.removeItem('has_voted_south_zoo');
       await refreshData();
     } finally {
       setIsLoading(false);
