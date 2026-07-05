@@ -327,7 +327,7 @@ export default function AdminDashboard() {
           </form>
 
           <div className="bg-black/60 border border-white/10 rounded-xl p-3 text-center text-[11px] text-white/40 mt-6 leading-relaxed">
-            💡 Use your authorized administrative passkey to unlock the dashboard.
+            💡 Use your authorized administrative passkey to unlock the dashboard. If you do not have one, contact the event organizer.
           </div>
         </div>
       </div>
