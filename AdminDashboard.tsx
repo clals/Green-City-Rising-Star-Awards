@@ -327,7 +327,7 @@ export default function AdminDashboard() {
           </form>
 
           <div className="bg-black/60 border border-white/10 rounded-xl p-3 text-center text-[11px] text-white/40 mt-6 leading-relaxed">
-            💡 For evaluating inside AI Studio, type <span className="text-gold-500 font-bold font-mono">Southzoo@2026</span> to unlock.
+            💡 Use your authorized administrative passkey to unlock the dashboard.
           </div>
         </div>
       </div>
