@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { VotingProvider } from './VotingContext';
 import Navbar from './Navbar';
 import LandingPage from './LandingPage';
