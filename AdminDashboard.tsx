@@ -7,9 +7,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useVoting } from './VotingContext';
 import { dbService } from './db';
 import { 
-  ShieldCheck, Lock, Eye, EyeOff, Users, Award, Trophy, KeyRound, Settings, 
-  Plus, Trash2, Edit3, Download, RefreshCw, FileSpreadsheet, FileText, Check, 
-  AlertCircle, ChevronRight, Search, Filter, Calendar, X, Upload, Loader, AlertTriangle
+  ShieldCheck, Lock, Eye, EyeOff, Users, Award, Trophy, Settings, 
+  Plus, Trash2, Edit3, RefreshCw, FileSpreadsheet, FileText, Check, 
+  AlertCircle, Calendar, X, Upload, Loader
 } from 'lucide-react';
 import AnalyticsCharts from './AnalyticsCharts';
 import SafeImage from './SafeImage';
@@ -18,9 +18,9 @@ import { Category, Contestant } from './types';
 
 export default function AdminDashboard() {
   const {
-    categories, contestants, votingCodes, settings, refreshData,
+    categories, contestants, settings, refreshData,
     addCategory, deleteCategory, addContestant, updateContestant, deleteContestant,
-    generateCodes, updateSettings, resetVoting
+    updateSettings, resetVoting
   } = useVoting();
 
   // Authentication Lock State
@@ -30,17 +30,11 @@ export default function AdminDashboard() {
   const [showPasscode, setShowPasscode] = useState(false);
 
   // Active Admin Panel Tab
-  const [activeTab, setActiveTab] = useState<'analytics' | 'codes' | 'candidates' | 'categories' | 'settings'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'candidates' | 'categories' | 'settings'>('analytics');
 
   // Local Action States
   const [votes, setVotes] = useState<any[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
-
-  // 1. Codes Generator State
-  const [generateCount, setGenerateCount] = useState(10);
-  const [generatePrefix, setGeneratePrefix] = useState('VOTE-VIP');
-  const [generatedResult, setGeneratedResult] = useState<any[] | null>(null);
 
   // 2. Candidate Manager (CRUD) Forms State
   const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
@@ -235,27 +229,12 @@ export default function AdminDashboard() {
     setTimeout(() => setResetFinishedNotice(false), 5000);
   };
 
-  // Generate Codes Handler
-  const handleGenerateCodes = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const prefix = generatePrefix.trim().toUpperCase() || 'VOTE';
-    const codes = await generateCodes(generateCount, prefix);
-    setGeneratedResult(codes);
-  };
-
   // Refresh
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
     await refreshData();
     await loadVotes();
     setIsRefreshing(false);
-  };
-
-  // Copy code helpers
-  const handleCopyCode = (codeStr: string, id: string) => {
-    navigator.clipboard.writeText(codeStr);
-    setCopiedCodeId(id);
-    setTimeout(() => setCopiedCodeId(null), 2000);
   };
 
   // Export Rankings as CSV file
@@ -675,7 +654,7 @@ export default function AdminDashboard() {
                   Secure System Factory Wipe
                 </h3>
                 <p className="text-xs text-white/50 leading-relaxed font-light">
-                  Resetting clears all registered voting selections. It will also restore spent voting codes back to authorized flags, enabling attendees to vote again. This action is irreversible.
+                  Resetting clears all registered voting selections. This allows voters to cast their ballots again. This action is irreversible.
                 </p>
 
                 {resetFinishedNotice && (
