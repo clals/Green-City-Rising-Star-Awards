@@ -661,31 +661,76 @@ export const dbService = {
   // VOTES SUBMISSION & ANALYTICS
   // ==========================================
   async submitVotes(votes: Omit<Vote, 'id' | 'timestamp'>[]): Promise<void> {
-    const timestamp = new Date().toISOString();
-    const votesToSubmit = votes.map(v => ({
-      ...v,
-      timestamp,
-    }));
+    if (!Array.isArray(votes) || votes.length === 0) {
+      throw new Error('No votes provided for submission.');
+    }
 
-    if (isSupabaseConfigured && supabaseClient) {
+    const contestants = await this.getContestants();
+    const contestantNameById = new Map(contestants.map((c) => [c.id, c.name]));
+    const ballotCodePrefix = `BALLOT-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+
+    for (let i = 0; i < votes.length; i++) {
+      const vote = votes[i];
+      const contestantId = vote.contestant_id?.trim();
+      const category = vote.category?.trim();
+
+      if (!contestantId || !category) {
+        throw new Error('Unable to record your vote. Please try again.');
+      }
+
+      const contestantName = contestantNameById.get(contestantId) || contestantId;
+      const payload = {
+        contestant_id: contestantId,
+        contestant_name: contestantName,
+        category,
+        vote_code: `${ballotCodePrefix}-${i + 1}`,
+        timestamp: new Date().toISOString(),
+      };
+
+      let response: Response;
       try {
-        const { error } = await supabaseClient.from('votes').insert(votesToSubmit);
-        if (error) throw error;
-        return;
-      } catch (err) {
-        console.warn("Supabase submitVotes failed, falling back to local storage:", err);
+        response = await fetch('/api/submitVote', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+      } catch {
+        throw new Error('Unable to record your vote. Please try again.');
+      }
+
+      let json: any = null;
+      try {
+        json = await response.json();
+      } catch {
+        json = null;
+      }
+
+      if (!response.ok || !json?.success) {
+        const message = json?.message || 'Unable to record your vote. Please try again.';
+        throw new Error(message);
       }
     }
-    const storedVotes = getLocalData<Vote[]>(KEYS.VOTES, DEFAULT_VOTE_SEEDS());
-    const insertedVotes: Vote[] = votesToSubmit.map((v, i) => ({
-      id: `vote-${Date.now()}-${i}`,
-      ...v
-    }));
-    const updated = [...storedVotes, ...insertedVotes];
-    setLocalData(KEYS.VOTES, updated);
   },
 
   async getVotes(): Promise<Vote[]> {
+    try {
+      const response = await fetch('/api/getVotes', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      const data = await response.json().catch(() => null);
+      if (response.ok && data?.success && Array.isArray(data.votes)) {
+        return data.votes;
+      }
+    } catch (err) {
+      console.warn('Vercel getVotes API failed, falling back to existing data source:', err);
+    }
+
     if (isSupabaseConfigured && supabaseClient) {
       try {
         const { data, error } = await supabaseClient.from('votes').select('*');

@@ -31,7 +31,7 @@ The system features an automated **Sandbox Fallback Mode** that enables immediat
 - **Styling & Theme**: Tailwind CSS (Midnight Prestige Black & Gold Theme)
 - **Routing**: React Router DOM (Hash-based for maximum iframe & SPA host compatibility)
 - **Database**: Supabase PostgreSQL (Production) / Client-side Cache Sandbox (Evaluation fallback)
-- **Serverless**: Netlify Serverless Functions (Node.js)
+- **Serverless**: Vercel Serverless Functions (Node.js)
 - **Animations**: Framer Motion (micro-interactions & page entries)
 
 ---
@@ -40,9 +40,9 @@ The system features an automated **Sandbox Fallback Mode** that enables immediat
 
 ```text
 /
-├── netlify/
-│   └── functions/
-│       └── submit-vote.ts        # Netlify Serverless anonymous vote controller
+├── api/
+│   ├── submitVote.ts             # Vercel API route for vote submission proxy
+│   └── getVotes.ts               # Vercel API route for admin vote reads
 ├── src/
 │   ├── components/
 │   │   ├── AnalyticsCharts.tsx    # Responsive vector charts (bars, donut, leaders)
@@ -64,7 +64,7 @@ The system features an automated **Sandbox Fallback Mode** that enables immediat
 │   └── types.ts                   # Types definitions
 ├── supabase/
 │   └── schema.sql                 # Production SQL and Row Level Security rules
-├── netlify.toml                   # Netlify environment builder configurations
+├── vercel.json                    # Vercel routing configuration
 ├── package.json                   # Project packages configuration
 └── tsconfig.json                  # Strict TypeScript parameters configuration
 ```
@@ -73,37 +73,40 @@ The system features an automated **Sandbox Fallback Mode** that enables immediat
 
 ## 🚀 Step 1: Configuring Supabase
 
+For emergency Google Sheets-based vote storage (temporary backend replacement), follow the guide in GOOGLE_SHEETS_BACKEND.md.
+
 1. **Create a Free Account**: Visit [Supabase](https://supabase.com/) and create a new PostgreSQL project.
 2. **Initialize Database Tables**: Go to the **SQL Editor** tab inside your Supabase dashboard, click "New Query", paste the entire contents of `/supabase/schema.sql`, and press **Run**. This will create your tables (`categories`, `contestants`, `voting_codes`, `votes`, `settings`), establish cascading foreign keys, insert sample gala nominees, and activate secure Row Level Security.
 3. **Retrieve Credentials**: Visit **Project Settings** -> **API** and copy your `Project URL` and `anon public` key.
 
 ---
 
-## 🌐 Step 2: Deploying to Netlify
+## 🌐 Step 2: Deploying to Vercel
 
-### Method A: Single-Click Netlify CLI
-1. Install the Netlify CLI globally:
+### Method A: Vercel CLI
+1. Install the Vercel CLI globally:
    ```bash
-   npm install -g netlify-cli
+   npm install -g vercel
    ```
 2. Log in and deploy:
    ```bash
-   netlify login
-   netlify deploy --prod
+   vercel login
+   vercel --prod
    ```
 
 ### Method B: Git Integration (Recommended)
 1. Push this project folder to your GitHub / GitLab account.
-2. Log in to [Netlify](https://www.netlify.com/), click **Add New Site** -> **Import from Git**, and authorize your repository.
-3. Netlify automatically reads the `/netlify.toml` file and pre-configures your build command as `npm run build` and directory as `dist`.
+2. Log in to [Vercel](https://vercel.com/), click **Add New Project**, and import your repository.
+3. Vercel auto-detects Vite and builds using `npm run build`.
 
 ### Configure Environment Secrets
-Add these variables under your Site's **Environment Variables** panel in Netlify (or your AI Studio Secrets panel) to link your live database:
+Add these variables under your Project's **Environment Variables** panel in Vercel:
 
 | Secret Key | Description / Example |
 | :--- | :--- |
 | `VITE_SUPABASE_URL` | Your Supabase Project URL (`https://your-id.supabase.co`) |
 | `VITE_SUPABASE_ANON_KEY` | Your Supabase Public Anon Key (`eyJhbGciOiJIUzI1NiIsInR5...`) |
+| `GOOGLE_SCRIPT_URL` | Google Apps Script Web App URL used for temporary vote storage |
 
 ---
 

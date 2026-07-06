@@ -77,6 +77,16 @@ export default function AdminDashboard() {
     }
   }, [isAuthenticated, votingCodes]);
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const interval = setInterval(() => {
+      loadVotes();
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
   // Handle local passkey authentication
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
