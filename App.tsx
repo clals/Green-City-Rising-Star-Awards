@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { VotingProvider } from './VotingContext';
 import Navbar from './Navbar';
 import LandingPage from './LandingPage';
@@ -41,6 +42,7 @@ export default function App() {
           </footer>
           
         </div>
+        <Analytics />
       </Router>
     </VotingProvider>
   );
